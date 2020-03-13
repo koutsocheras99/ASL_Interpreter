@@ -16,6 +16,16 @@ def feed_preprocessing(frame):
     return frame
 
 
+def write_letter(frame, label_letter):
+
+    # dirs is a list containing all letters in order (from default from the directory)
+    dirs = [label for label in os.listdir('NewDataSet/Train') if os.path.isdir(os.path.join('NewDataSet/Train', label))]
+    frame = cv2.putText(frame, dirs[label_letter], (270, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (30, 30, 255), 3)
+
+    # print(type(dirs[label]))
+    return frame
+
+
 def recognition_func():
 
     # loading the pre-trained model
@@ -68,13 +78,17 @@ def recognition_func():
         # 0 -> A, 1 -> B, 2-> C
         # print(integer_label)
 
-        # dirs is a list containing all letters in order (from default from the directory)
-        dirs = [label for label in os.listdir('NewDataSet/Train') if os.path.isdir(os.path.join('NewDataSet/Train', label))]
+        frame1 = cv2.putText(frame1, 'Letter:', (50, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (30, 30, 255), 3)
 
         # matching the labels to the actual values
         # most_prob > number (where number determined based on measures) to avoid random results
-        if most_prob > 0.92:
-            print(dirs[integer_label])
+        
+        if most_prob > 0.85:
+
+            # print(dirs[integer_label])
+
+            write_letter(frame1, integer_label)
+
 
         if not check:
             break
@@ -93,5 +107,5 @@ def recognition_func():
     cv2.destroyAllWindows()
 
 
-# prediction_func(image)
 recognition_func()
+
