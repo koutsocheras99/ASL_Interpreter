@@ -16,17 +16,16 @@ def feed_preprocessing(frame):
     return frame
 
 
-def write_letter(frame, label_letter):
+def write_letter(label_letter):
 
     # dirs is a list containing all letters in order (from default from the directory)
     dirs = [label for label in os.listdir('NewDataSet/Train') if os.path.isdir(os.path.join('NewDataSet/Train', label))]
-    frame = cv2.putText(frame, dirs[label_letter], (270, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (30, 30, 255), 3)
 
     # print(type(dirs[label]))
-    return frame
+    return dirs[label_letter]
 
 
-def recognition_func():
+def main_func():
 
     # loading the pre-trained model
     model = load_model('SeqModel.h5')
@@ -35,6 +34,9 @@ def recognition_func():
 
     camera.set(3, 1080)
     camera.set(4, 720)
+
+    predict_letter_list = []
+    word = ''
 
     while True:
 
@@ -78,17 +80,28 @@ def recognition_func():
         # 0 -> A, 1 -> B, 2-> C
         # print(integer_label)
 
-        frame1 = cv2.putText(frame1, 'Letter:', (50, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (30, 30, 255), 3)
-
         # matching the labels to the actual values
         # most_prob > number (where number determined based on measures) to avoid random results
-        
         if most_prob > 0.85:
 
-            # print(dirs[integer_label])
+            letter = write_letter(integer_label)
+            # append the predicted letter into the list
+            predict_letter_list.append(letter)
+            
+            # every 20 letters
+            if len(predict_letter_list) % 20 == 0:
+                # check that ALL (20) the letters in the list are the same
+                if all(x == predict_letter_list[0] for x in predict_letter_list):
+                    # print(predict_letter_list[0])
+                    
+                    # add to the word that will be printed one of the identical items of the list 
+                    word = word + predict_letter_list[0]
+                    print(word)
 
-            write_letter(frame1, integer_label)
+                # every 20 letters clear the list so the process repeats again from the start
+                predict_letter_list.clear()
 
+        frame1 = cv2.putText(frame1, 'Predicted Word: ' + word, (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (128, 0, 0), 3)
 
         if not check:
             break
@@ -107,5 +120,5 @@ def recognition_func():
     cv2.destroyAllWindows()
 
 
-recognition_func()
+main_func()
 
