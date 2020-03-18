@@ -4,15 +4,14 @@ import numpy as np
 from numpy import ndarray
 from keras.models import load_model
 import functools
-from numpy import indices
-from cv2 import threshold, THRESH_BINARY, THRESH_OTSU
+import time
 
 
 # resizing live feed to desired dimensions
 def feed_preprocessing(frame):
 
     frame = np.array(frame, dtype=np.float32)
-    frame = np.reshape(frame, (1, 224, 224, 1))
+    frame = np.reshape(frame, (1, 254, 254, 1))
     return frame
 
 
@@ -27,6 +26,10 @@ def write_letter(label_letter):
 
 def main_func():
 
+    image = cv2.imread('asl_alphabet.jpg')
+
+    resized_image = cv2.resize(image, (570, 720))
+
     # loading the pre-trained model
     model = load_model('SeqModel.h5')
 
@@ -36,28 +39,26 @@ def main_func():
     camera.set(4, 720)
 
     predict_letter_list = []
-    word = ''
+    word_str = ''
+    word_list = []
 
     while True:
 
         check, frame1 = camera.read()
 
-        cv2.rectangle(frame1, (20, 70), (245, 295), (0, 255, 0), thickness=1)
+        cv2.rectangle(frame1, (20, 70), (275, 325), (0, 255, 0), thickness=1)
 
         gray_frame = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
 
-        median_blurred = cv2.medianBlur(gray_frame, 9)
+        median_blurred = cv2.medianBlur(gray_frame, 3)  # blurring (median) the gray frame
 
-        gaus_blurred = cv2.GaussianBlur(median_blurred, (5, 5), 0)
+        gaus_blurred = cv2.GaussianBlur(median_blurred, (3, 3), 0)  # blurring (gaussian) the already blurred gray frame
 
-        ret, thre_ots = cv2.threshold(gaus_blurred, 254, 510, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        canny_frame = cv2.Canny(gaus_blurred, 30, 30)
 
-        cropped_frame = thre_ots[71:295, 21:245]
+        cropped_frame = canny_frame[71:325, 21:275]
 
         cropFrame_array = feed_preprocessing(cropped_frame)
-
-        # adding dimension
-        # cropFrame_array = np.expand_dims(cropFrame_array, axis=0)
 
         # predict
         predictions_prob = model.predict(cropFrame_array)
@@ -82,32 +83,50 @@ def main_func():
 
         # matching the labels to the actual values
         # most_prob > number (where number determined based on measures) to avoid random results
-        if most_prob > 0.85:
+        if most_prob > 0.65:
+
+            # print(f'accuracy: {most_prob}')
+            # print(f'letter {write_letter(integer_label)}')
 
             letter = write_letter(integer_label)
             # append the predicted letter into the list
             predict_letter_list.append(letter)
-            
-            # every 20 letters
-            if len(predict_letter_list) % 20 == 0:
-                # check that ALL (20) the letters in the list are the same
+            print(predict_letter_list)
+            # every x letters
+            if len(predict_letter_list) % 15 == 0:
+                # check that ALL (x) the letters in the list are the same
                 if all(x == predict_letter_list[0] for x in predict_letter_list):
-                    # print(predict_letter_list[0])
-                    
-                    # add to the word that will be printed one of the identical items of the list 
-                    word = word + predict_letter_list[0]
-                    print(word)
+                    if integer_label == 20:
+                        word_list += ' '
+                    elif integer_label == 4:  # trycatch should be added for empty list(deleting letter from empty word)
+                        try:
+                            word_list.pop()
+                        except:
+                            pass
 
-                # every 20 letters clear the list so the process repeats again from the start
+                    else:
+                        # add to the word that will be printed one of the identical items of the list
+                        word_list.append(predict_letter_list[0])
+                    time.sleep(.5)
+
+                    print(word_list)
+
+                # every x letter clear the list so the process repeats again from the start
                 predict_letter_list.clear()
+                # convert list into string for putText function
+                word_str = "".join(word_list)
 
-        frame1 = cv2.putText(frame1, 'Predicted Word: ' + word, (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 2, (128, 0, 0), 3)
+        frame1 = cv2.putText(frame1, 'Predicted Word: ' + word_str, (20, 60),
+                             cv2.FONT_HERSHEY_SIMPLEX, 2, (128, 0, 0), 3)
+        # frame1 = cv2.putText(frame1, 'Predicted Letter: ' + write_letter(integer_label), (20, 500),
+        #                     cv2.FONT_HERSHEY_SIMPLEX, 2, (128, 0, 0), 3)
 
         if not check:
             break
 
         cv2.imshow('WINDOW', frame1)
         cv2.imshow('CROPPED', cropped_frame)
+        cv2.imshow('ALPHABET', resized_image)
 
         if frame1 is None:
             break
@@ -121,4 +140,3 @@ def main_func():
 
 
 main_func()
-
