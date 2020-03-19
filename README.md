@@ -1,32 +1,35 @@
-### ***This project is a basic American Sign Language interpreter which applies in a few letters(A,B,C,D,F,G,H,L) implemented with OpenCV and Keras.***
+### ***This project is a American Sign Language Interpreter implemented with OpenCV and Keras.***
 
 <br>
 
-The DataSet was created by me and it consists of 4800 images.
+The DataSet was created by me and it consists of 16200 images.
   
-  - 600 for each letter tottaly.
+  - 600 for each gesture tottaly.
     - 500 for training
     - 50 for testing
     - 50 for validating
     
-Every image has been going through blurring (Median and Gaussian) and thresholing with [Otsu's Method](https://en.wikipedia.org/wiki/Otsu%27s_method).
+<br>
+
+Unfortunately due to size of the dataset ( >400MB) I haven't been able to upload it.
+
+<br>
+    
+Every image has been going through blurring (Median and Gaussian) and  the [Canny Method](https://en.wikipedia.org/wiki/Canny_edge_detector) has been used to minimize the loss.
   
 <br>
 
-A image sample from the dataset and specifically for the letter L is:
+A image sample from the dataset and specifically for the letter R is:
 <br>
-![file_37](https://user-images.githubusercontent.com/37080724/76479807-a5626000-6415-11ea-8dff-cc7d688fdfa6.jpg)
+![R (9)](https://user-images.githubusercontent.com/37080724/77018348-dac2fc80-6985-11ea-966e-a0ff06c23706.jpg)
 
 <br>
 The sequential CNN that was trained is shown below:
 <br>
 
-![SeqModel](https://user-images.githubusercontent.com/37080724/76480720-3afeef00-6418-11ea-8321-9bfc1102db0e.png)
+![image](https://user-images.githubusercontent.com/37080724/77018568-9e43d080-6986-11ea-9a07-5c5beb899bc5.png)
 
 <br>
 
 *A fully functional demo will be uploaded soon!*
 
-**Next Steps:**
-- [ ] Writing letters/words in the live feed using OpenCV.
-- [ ] Convert the above project for the Greek Sign Language.
